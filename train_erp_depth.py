@@ -27,6 +27,7 @@ import csv
 from util import *
 import shutil
 import torchvision.utils as vutils 
+import torchinfo
 
 parser = argparse.ArgumentParser(description='360Transformer')
 parser.add_argument('--input_dir', default='/media/rtx2/DATA/stanford2d3d',
@@ -43,7 +44,7 @@ parser.add_argument('--batch', type=int, default=8,
                     help='number of batch to train')
 parser.add_argument('--visualize_interval', type=int, default=20,
                     help='number of batch to train')
-parser.add_argument('--patchsize', type=list, default=(128, 128),
+parser.add_argument('--patchsize', type=list, default=(128, 128), #(256, 256), #(128, 128),
                     help='patch size')
 parser.add_argument('--lr', type=float, default=1e-4,
                     help='initial learning rate')
@@ -57,7 +58,7 @@ parser.add_argument('--checkpoint', default= None,
                     help='load checkpoint path')
 parser.add_argument('--save_checkpoint', default='checkpoints',
                     help='save checkpoint path')
-parser.add_argument('--save_path', default='./results/stanford/512x1024/resnet34/visualize_point_1_iter',
+parser.add_argument('--save_path', default='./output/stanford',#./results/stanford/512x1024/resnet34/visualize_point_1_iter',
                     help='save checkpoint path')                    
 parser.add_argument('--tensorboard_path', default='logs',
                     help='tensorboard path')
@@ -137,12 +138,13 @@ val_dataloader = torch.utils.data.DataLoader(
 # option 1, resnet 360 
 num_gpu = torch.cuda.device_count()
 network = spherical_fusion(nrows=nrows, npatches=npatches_dict[nrows], patch_size=patch_size, fov=fov)
-network = convert_model(network)
+network = convert_model(network) # batchnormalize?
 
 # parallel on multi gpu
 network = nn.DataParallel(network)
 network.cuda()
-
+# ckpt = torch.load('output/ckpt_test.pth')
+# network.load_state_dict(ckpt)
 #----------------------------------------------------------
 
 print('## Batch size: {}'.format(batch_size))
@@ -399,7 +401,8 @@ def main():
             d1_inlier_meter.reset()
             d2_inlier_meter.reset()
             d3_inlier_meter.reset()
-            if abs_rel_error_meter.avg.item() < min_error:
+            if abs_rel_error_meter.avg < min_error:
+            #if abs_rel_error_meter.avg.item() < min_error:
                 torch.save(network.state_dict(), os.path.join(args.save_path, args.save_checkpoint)+'/checkpoint_best.pth')
         
     # End Training

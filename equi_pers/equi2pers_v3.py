@@ -47,8 +47,8 @@ def equi2pers(erp_img, fov, nrows, patch_size):
         phi_centers = [-72.2, -36.1, 0, 36.1, 72.2]
             
     phi_interval = 180 // num_rows
-    all_combos = []
-    erp_mask = []
+    all_combos = [] #  center points(theta, phi) Per patch
+    erp_mask = [] #  Masking region Per Patch
     for i, n_cols in enumerate(num_cols):
         for j in np.arange(n_cols):
             theta_interval = 360 / n_cols
@@ -122,12 +122,12 @@ def equi2pers(erp_img, fov, nrows, patch_size):
     return pers, xyz, uv, center_p
 
 if __name__ == '__main__':
-    img = cv2.imread('pano5.png', cv2.IMREAD_COLOR)
+    img = cv2.imread('pano4.png', cv2.IMREAD_COLOR)
     img_new = img.astype(np.float32) 
     img_new = np.transpose(img_new, [2, 0, 1])
     img_new = torch.from_numpy(img_new)
     img_new = img_new.unsqueeze(0)
-    pers = equi2pers(img_new, fov=(52, 52), patch_size=(64, 64))
+    pers = equi2pers(img_new, fov=(52, 52), nrows=4, patch_size=(64, 64))
     pers = pers[0].numpy()
     pers = pers.transpose(1, 2, 0).astype(np.uint8)
     cv2.imwrite('pers.png', pers)

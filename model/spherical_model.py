@@ -188,7 +188,7 @@ class Transformer_cascade(nn.Module):
        
         
 class spherical_fusion(nn.Module):
-    def __init__(self, nrows=4, npatches=18, patch_size=(128, 128), fov=(80, 80)):
+    def __init__(self, nrows=4, npatches=18, patch_size=(128, 128), fov=(80, 80)): 
         self.nrows = nrows
         self.npatches = npatches
         self.patch_size = patch_size
@@ -208,8 +208,8 @@ class spherical_fusion(nn.Module):
         self.layer3 = encoder.layer3  #256
         self.layer4 = encoder.layer4  #512
 
-        self.down = nn.Conv3d(512, 512//16, kernel_size=1, stride=1, padding=0)
-        self.transformer = Transformer_cascade(512, npatches, depth=6, num_heads=4)
+        self.down = nn.Conv3d(512, 512//16, kernel_size=1, stride=1, padding=0) #2048 512
+        self.transformer = Transformer_cascade(512, npatches, depth=6, num_heads=4) #2048 512
         
         self.de_conv0_0 = ConvBnReLU_v2(512, 256, kernel_size=3, stride=1)
         self.de_conv0_1 = ConvBnReLU_v2(256+256, 128, kernel_size=3, stride=1) 
@@ -236,6 +236,16 @@ class spherical_fusion(nn.Module):
 
     
     def forward(self, rgb, confidence=True):
+        # erp_img = ( rgb[0].permute(1, 2, 0).cpu().detach().numpy() * 255 )[..., [2,1,0]].astype(np.uint8)
+        # pred_img = ( pred[0].permute(1, 2, 0).cpu().detach().numpy() * 255 ).astype(np.uint8) 
+        # per_img = (high_res_patch[0, ... ,:3].reshape(3, 128, -1).permute(1, 2, 0).cpu().detach().numpy() * 255)[..., [2,1,0]].astype(np.uint8)
+        # import matplotlib.pyplot as plt
+        # plt.imshow(erp_img)
+        # plt.axis('off')
+        # plt.savefig('./output/__erp_img.png', bbox_inches='tight', pad_inches=0)
+        # plt.imshow(per_img)
+        
+        
         bs, _, erp_h, erp_w = rgb.shape
         device = rgb.device
         patch_h, patch_w = pair(self.patch_size)
@@ -250,6 +260,9 @@ class spherical_fusion(nn.Module):
         new_xyz = torch.cat([center_points, rho, center_points], 1)
         point_feat = self.mlp_points(new_xyz.contiguous())
         point_feat = point_feat.permute(1, 2, 3, 0).unsqueeze(0)
+    
+    
+    
     
         conv1 = self.relu(self.bn1(self.conv1(high_res_patch)))
         pool = F.max_pool3d(conv1, kernel_size=(3, 3, 1), stride=(2, 2, 1), padding=(1, 1, 0))

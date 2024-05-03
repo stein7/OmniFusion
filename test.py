@@ -42,7 +42,7 @@ parser.add_argument('--testfile', default='./filenames/test_stanford2d3d.txt',
                     help='validation file name')
 parser.add_argument('--visualize_interval', type=int, default=20,
                     help='number of batch to train')
-parser.add_argument('--patchsize', type=list, default=(256, 256),
+parser.add_argument('--patchsize', type=list, default=(128, 128),#(256, 256),
                     help='patch size')
 parser.add_argument('--fov', type=float, default=80,
                     help='field of view')

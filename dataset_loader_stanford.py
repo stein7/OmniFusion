@@ -48,7 +48,7 @@ class Dataset(torch.utils.data.Dataset):
         # Load the panos
         relative_basename = osp.splitext((relative_paths[0]))[0]
         basename = osp.splitext(osp.basename(relative_paths[0]))[0]
-        rgb = self.readRGBPano(self.root_path + relative_paths[0])
+        rgb = self.readRGBPano(self.root_path + relative_paths[0]) #image Resize 4096x2048x3 -> 1024x512x3
         #depth = self.readDepthPano(self.root_path + relative_paths[3])
         depth = self.readDepthPano(self.root_path + relative_paths[1])
         rgb = rgb.astype(np.float32)/255
